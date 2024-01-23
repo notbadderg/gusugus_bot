@@ -17,7 +17,7 @@ class DiscordBot:
     def send_msg(self, message):
 
         body = {
-            'content': message
+            'content': message,
         }
 
         try:

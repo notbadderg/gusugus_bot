@@ -13,9 +13,14 @@ class TelegramBot:
     def send_msg(self, message):
         method = '/sendMessage'
         url = self.request_root + method
+        body = {
+            'disable_web_page_preview': True,
+            'chat_id': self.channel_id,
+            'text': message,
+        }
 
         try:
-            response = requests.post(url, json={'chat_id': self.channel_id, 'text': message})
+            response = requests.post(url, json=body)
             return response
         except Exception as e:
             print(e)

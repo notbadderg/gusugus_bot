@@ -1,32 +1,33 @@
-import os
+import json
 
-from dotenv import load_dotenv, find_dotenv
-
+from config import get_cfg
 from src.tg_bot import TelegramBot
 from src.ds_bot import DiscordBot
 
+from src.messages import CustomMessages
+
+
+# "content": "sattelite:\ud83d\udce1 ... okay:\u2705  ... warning:\u26a0\ufe0f",
+
 
 def main():
-    load_dotenv(find_dotenv())
 
-    tg_api_root = os.getenv('TG_API_ROOT')
-    tg_token = os.getenv('TG_TOKEN')
-    tg_allowed_users = os.getenv('TG_ALLOWED_USERS')
-    tg_channel_id = os.getenv('TG_CHANNEL_ID')
+    cfg = get_cfg()
+    msg = CustomMessages(cfg['TWITCH_URL'], cfg['YOUTUBE_URL'])
 
-    ds_api_root = os.getenv('DS_API_ROOT')
-    ds_token = os.getenv('DS_TOKEN')
-    ds_channel_id = os.getenv('DS_CHANNEL_ID')
 
     # Test
-    # tg_bot = TelegramBot(tg_api_root, tg_token, tg_allowed_users, tg_channel_id)
-    # response = tg_bot.send_msg('qweqwe')
-    # print(f'{response.status_code}: {response.text}')
+    tg_bot = TelegramBot(cfg['TG_API_ROOT'], cfg['TG_TOKEN'], cfg['TG_ALLOWED_USERS'], cfg['TG_CHANNEL_ID'])
+    response = tg_bot.send_msg(msg.stream_everywhere())
+    print(f'{response.status_code}: {response.text}')
 
-    ds_bot = DiscordBot(ds_api_root, ds_token, ds_channel_id)
-    # response = ds_bot.send_msg('qweqwe')
+    ds_bot = DiscordBot(cfg['DS_API_ROOT'], cfg['DS_TOKEN'], cfg['DS_CHANNEL_ID'])
+    # # response = ds_bot.send_msg('\u2705')
     response = ds_bot.get_msgs()
     print(f'{response.status_code}: {response.text}')
+    pretty_response = json.dumps(response.json(), indent=4)
+
+    print(pretty_response)
 
 
 if __name__ == '__main__':
