@@ -1,7 +1,7 @@
 import requests
 import time
 
-from src.utilites import append_id, read_ids, rewrite_ids
+from src.utilites import append_message, read_messages, rewrite_messages
 
 
 class TelegramBot:
@@ -29,15 +29,14 @@ class TelegramBot:
         try:
             response = requests.post(url, json=body)
             if response.status_code == 200:
-                message_id = response.json()['result']['message_id']
-                append_id(self.temp_folder, self.tg_temp_file, message_id)
+                result = response.json()['result']
+                buffered_message = {result['message_id']: result['text']}
+                append_message(self.temp_folder, self.tg_temp_file, buffered_message)
             return response
         except Exception as e:
             print(e)
 
     def finish_announce(self):
-        # read_ids(self.temp_folder, self.tg_temp_file)
-        #
         method = '/editMessageText'
         url = self.request_root + method
 
@@ -47,20 +46,21 @@ class TelegramBot:
             'text': 'asddsas',
         }
 
-        ids = read_ids(self.temp_folder, self.tg_temp_file)
+        buffered_messages = read_messages(self.temp_folder, self.tg_temp_file)
 
-        bad_set = set()
-        for id_ in ids:
+        bad_messages = {}
+        for id_, text in buffered_messages.items():
             body.update({
                 'message_id': id_
             })
+
             response = requests.post(url, json=body)
             print(response)
             if response.status_code != 200:
-                bad_set.add(id_)
+                bad_messages[id_] = text
             time.sleep(0.5)
 
-        rewrite_ids(self.temp_folder, self.tg_temp_file, bad_set)
+        rewrite_messages(self.temp_folder, self.tg_temp_file, bad_messages)
 
 
 

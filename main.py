@@ -29,7 +29,7 @@ def main():
     # tg_bot.start()
 
 
-    # response = tg_bot.send_msg(message)
+    response = tg_bot.send_msg(message)
     # print(json.dumps(response.json(), indent=4))
 
     print(tg_bot.finish_announce())
