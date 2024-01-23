@@ -13,21 +13,23 @@ from src.messages import CustomMessages
 def main():
 
     cfg = get_cfg()
-    msg = CustomMessages(cfg['TWITCH_URL'], cfg['YOUTUBE_URL'])
+    msgs = CustomMessages(cfg['TWITCH_URL'], cfg['YOUTUBE_URL'])
 
 
     # Test
-    tg_bot = TelegramBot(cfg['TG_API_ROOT'], cfg['TG_TOKEN'], cfg['TG_ALLOWED_USERS'], cfg['TG_CHANNEL_ID'])
-    response = tg_bot.send_msg(msg.stream_everywhere())
-    print(f'{response.status_code}: {response.text}')
+    # tg_bot = TelegramBot(cfg['TG_API_ROOT'], cfg['TG_TOKEN'], cfg['TG_ALLOWED_USERS'], cfg['TG_CHANNEL_ID'])
+    # response = tg_bot.send_msg(msg.stream_everywhere_string())
+    # print(f'{response.status_code}: {response.text}')
 
-    ds_bot = DiscordBot(cfg['DS_API_ROOT'], cfg['DS_TOKEN'], cfg['DS_CHANNEL_ID'])
-    # # response = ds_bot.send_msg('\u2705')
-    response = ds_bot.get_msgs()
-    print(f'{response.status_code}: {response.text}')
-    pretty_response = json.dumps(response.json(), indent=4)
+    message = msgs.stream_starts_soon() + msgs.stream_everywhere_string()
 
-    print(pretty_response)
+    ds_bot = DiscordBot(cfg['DS_API_ROOT'], cfg['DS_TOKEN'], cfg['DS_CHANNEL_ID'], msgs)
+    # response = ds_bot.send_msg(message)
+    # print(f'{response.status_code}: {response.text}')
+
+    # response = ds_bot.get_msgs()
+    # print(json.dumps(response.json(), indent=4))
+    print(ds_bot.finish_announce())
 
 
 if __name__ == '__main__':
