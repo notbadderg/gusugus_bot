@@ -18,17 +18,35 @@ def main():
     message = msgs.stream_starts_soon() + msgs.stream_everywhere_string()
 
     # Test
-    tg_bot = TelegramBot(cfg['TG_API_ROOT'], cfg['TG_TOKEN'], cfg['TG_ALLOWED_USERS'], cfg['TG_CHANNEL_ID'], msgs)
-    response = tg_bot.send_msg(message)
-    print(f'{response.status_code}: {response.text}')
+    tg_bot = TelegramBot(cfg['TG_API_ROOT'],
+                         cfg['TG_TOKEN'],
+                         cfg['TG_ALLOWED_USERS'],
+                         cfg['TG_CHANNEL_ID'],
+                         msgs,
+                         cfg['TEMP_FOLDER'],
+                         cfg['TG_TEMP_FILE'],
+                         )
+    # tg_bot.start()
 
-    ds_bot = DiscordBot(cfg['DS_API_ROOT'], cfg['DS_TOKEN'], cfg['DS_CHANNEL_ID'], msgs)
-    response = ds_bot.send_msg(message)
-    print(f'{response.status_code}: {response.text}')
+
+    # response = tg_bot.send_msg(message)
+    # print(json.dumps(response.json(), indent=4))
+
+    print(tg_bot.finish_announce())
+
+
+
+    #
+    # ds_bot = DiscordBot(cfg['DS_API_ROOT'], cfg['DS_TOKEN'], cfg['DS_CHANNEL_ID'], msgs)
+    # response = ds_bot.send_msg(message)
+    # print(f'{response.status_code}: {response.text}')
 
     # response = ds_bot.get_msgs()
     # print(json.dumps(response.json(), indent=4))
     # print(ds_bot.finish_announce())
+
+
+
 
 
 if __name__ == '__main__':
