@@ -24,10 +24,10 @@ def main():
 
     tg_bot.start()
 
-    # response = tg_bot.send_msg(message)
+    response = tg_bot.send_msg(message)
     # print(json.dumps(response.json(), indent=4))
     # #
-    # print(tg_bot.finish_announce())
+    # print(tg_bot.close_announce('finished'))
 
 
 
@@ -39,7 +39,7 @@ def main():
     # response = ds_bot.get_msgs()
     # print(json.dumps(response.json(), indent=4))
 
-    # print(ds_bot.finish_announce())
+    # print(ds_bot.close_announce('finished'))
 
 
 if __name__ == '__main__':

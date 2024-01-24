@@ -13,6 +13,7 @@ class TelegramBot:
         self.token = cfg['TG_TOKEN']
         self.allowed_users = cfg['TG_ALLOWED_USERS'].split(',')
         self.channel_id = int(cfg['TG_CHANNEL_ID'])
+        self.pool_refresh_time = float(cfg['TG_POOL_REFRESH_TIME'])
 
         self.temp_file = cfg['TG_TEMP_FILE']
         self.temp_folder = cfg['TEMP_FOLDER']
@@ -59,7 +60,7 @@ class TelegramBot:
         except Exception as e:
             print(e)
 
-    def finish_announce(self):
+    def close_announce(self, reason):
         method = '/editMessageText'
         url = self.request_root + method
 
@@ -73,13 +74,20 @@ class TelegramBot:
         codes = []
         bad_messages = {}
         for id_, text in buffered_messages.items():
-            if self.msgs.satellite not in text or self.msgs.green_check in text:
+            if self.msgs.satellite not in text or self.msgs.green_check in text or self.msgs.red_circle in text:
                 bad_messages[id_] = text
                 continue
             old_text = text.split(self.msgs.satellite)[-1].split('https')[0]
 
+            if reason == 'aborted':
+                msg = self.msgs.stream_aborted_string()
+            elif reason == 'finished':
+                msg = self.msgs.stream_finished_string()
+            else:
+                raise Exception
+
             body.update({
-                'text': f'{self.msgs.stream_ended_string()}<del>{old_text}</del>',
+                'text': f'{msg}<del>{old_text}</del>',
                 'message_id': id_
             })
 
@@ -92,46 +100,100 @@ class TelegramBot:
         rewrite_messages(self.temp_folder, self.temp_file, bad_messages)
         return codes
 
-    def bot_commands(self, command):
-        match command:
-            case 'a':
-                return 'a'
-            case '/soon_all':
-                message = self.msgs.stream_starts_soon() + self.msgs.stream_everywhere_string()
-                r1 = self.send_msg(message).status_code
-                r2 = self.ds_bot.send_msg(message).status_code
-                return f'{r1}, {r2}'
-
-            case '/finish':
-                r1 = self.finish_announce()
-                r2 = self.ds_bot.finish_announce()
-                return f'{r1}, {r2}'
-
-            # If an exact match is not confirmed, this last case will be used if provided
-            case _:
-                return 'Unrecognized'
-
     def commands_switch(self, command):
-        if command[0] == '/':
-            return 'uwu'
+        if command == '/start':
+            cmds = ('\n'
+                    '\n'
+                    '/start\n\n'
+                    '/finish\n\n'
+                    '/abort\n\n'
+                    '/soonall\n\n'
+                    '/soontwi\n\n'
+                    '/maall {msg}\n\n'
+                    '/matwi {msg}\n\n'
+                    '/maoth {msg}\n\n'
+                    )
+            return cmds
 
-        else:
-            return 'UNRECOGNIZED'
+        elif command == '/finish':
+            r1 = self.close_announce('finished')
+            r2 = self.ds_bot.close_announce('finished')
+            return f'{r1}, {r2}'
 
+        elif command == '/abort':
+            r1 = self.close_announce('aborted')
+            r2 = self.ds_bot.close_announce('aborted')
+            return f'{r1}, {r2}'
+
+        elif command == '/soonall':
+            msg = (f'{self.msgs.stream_starts_soon()}'
+                   f'{self.msgs.stream_everywhere_string()}\n'
+                   f'{self.msgs.warning}')
+            r1 = self.send_msg(msg).status_code
+            r2 = self.ds_bot.send_msg(msg).status_code
+            return f'{r1}, {r2}'
+
+        elif command == '/soontwi':
+            msg = (f'{self.msgs.stream_starts_soon()}'
+                   f'{self.msgs.stream_only_twitch_string()}\n'
+                   f'{self.msgs.warning}')
+            r1 = self.send_msg(msg).status_code
+            r2 = self.ds_bot.send_msg(msg).status_code
+            return f'{r1}, {r2}'
+
+        elif command[:3] == '/ma':
+            command = command[3:]
+            if len(command) < 10:
+                msg = 'too short cmd'
+                return msg
+
+            elif command[:3] == 'all':
+                msg = (f'{self.msgs.satellite} {command[4:]}\n'
+                       f'{self.msgs.stream_everywhere_string()}\n'
+                       f'{self.msgs.warning}')
+                r1 = self.send_msg(msg).status_code
+                r2 = self.ds_bot.send_msg(msg).status_code
+                return f'{msg}\n{r1}, {r2}'
+
+            elif command[:3] == 'twi':
+                msg = (f'{self.msgs.satellite} {command[4:]}\n'
+                       f'{self.msgs.stream_only_twitch_string()}\n'
+                       f'{self.msgs.warning}')
+                r1 = self.send_msg(msg).status_code
+                r2 = self.ds_bot.send_msg(msg).status_code
+                return f'{msg}\n{r1}, {r2}'
+
+            elif command[:3] == 'oth':
+                msg = (f'{self.msgs.blue_info} {command[4:]}\n\n'
+                       f'{self.msgs.warning}')
+                r1 = self.send_msg(msg).status_code
+                r2 = self.ds_bot.send_msg(msg).status_code
+                return f'{msg}\n{r1}, {r2}'
+
+        return 'UNRECOGNIZED'
 
     def start(self):
         bot_start_time = time.time()
-        start_msg = f'{datetime.datetime.fromtimestamp(bot_start_time).strftime('%Y-%m-%d %H:%M:%S')} - start'
+        start_msg = f'{datetime.datetime.fromtimestamp(bot_start_time).strftime('%Y-%m-%d %H:%M:%S')} - /start'
         print(start_msg)
         self.send_service_msg(start_msg)
 
-        time_threshold = bot_start_time
+        processed_messages = []
+        confirms_count = 0
+        prev_cmd = 'uwu'
         while True:
-            time.sleep(5)
+            if len(processed_messages) > 80:
+                processed_messages = processed_messages[50:]
 
+            time.sleep(self.pool_refresh_time)
+            body = {
+                "offset": -10,
+                "limit": 50,
+                "timeout": 0,
+            }
             method = '/getUpdates'
             url = self.request_root + method
-            response = requests.get(url)
+            response = requests.post(url, json=body)
             print(f'{datetime.datetime.now()} - {response.status_code}')
             if response.status_code != 200:
                 print('retrying in 60 secs...')
@@ -140,17 +202,15 @@ class TelegramBot:
 
             raw_results = response.json()['result']
             results = sorted(raw_results, key=lambda x: x['update_id'], reverse=True)
-
             for result in results:
 
-                if time_threshold >= result['message']['date']:
+                update_id = result['update_id']
+                if bot_start_time >= result['message']['date'] or update_id in processed_messages:
                     continue
 
-                update_id = result['update_id']
                 sender_id = result['message']['from']['id']
                 sender_type = result['message']['from']['is_bot']
                 sender_username = result['message']['from']['username']
-                message_raw_date = result['message']['date']
                 message_date = datetime.datetime.fromtimestamp(result['message']['date']).strftime('%Y-%m-%d %H:%M:%S')
                 message_text = result['message']['text']
                 log_string = f'{message_date} - {update_id} - {sender_id} {sender_type} {sender_username}: {message_text}'
@@ -159,20 +219,28 @@ class TelegramBot:
                     danger = ' ! UNAUTHORIZED ATTEMPT ! '
                     print(danger)
                     self.send_service_msg(log_string + danger)
+                    processed_messages.append(update_id)
                     continue
 
                 print()
-                result = self.commands_switch(message_text)
+                if message_text != '/start' and prev_cmd == message_text:
+                    confirms_count += 1
+                else:
+                    prev_cmd = message_text
 
-                log_string = (f'{message_date} - {update_id} - {sender_id} {sender_type} {sender_username}: '
-                              f'RESULT {result}')
+                if message_text == '/start' or confirms_count > 0:
+                    result_cmd = self.commands_switch(message_text)
+                    confirms_count = 0
+                    prev_cmd = 'baw'
+
+                else:
+                    result_cmd = 'Enter again for confirm'
+
+                log_string = (f'/start {message_date} - {sender_username}: '
+                              f'RESULT of {message_text}:\n{result_cmd}')
                 self.send_service_msg(log_string)
                 print(log_string)
 
+                processed_messages.append(update_id)
                 # NEED FOR COMPLETING ONLY LAST CMD
-                time_threshold = time.time()
                 break
-            else:
-                time_threshold = time.time()
-
-

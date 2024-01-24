@@ -14,6 +14,7 @@ def get_cfg():
         'TG_CHANNEL_ID',
         'TG_ALLOWED_USERS',
         'TG_TEMP_FILE',
+        'TG_POOL_REFRESH_TIME',
 
         'DS_API_ROOT',
         'DS_TOKEN',

@@ -40,22 +40,29 @@ class DiscordBot:
         except Exception as e:
             print(e)
 
-    def finish_announce(self):
+    def close_announce(self, reason):
 
         buffered_messages = read_messages(self.temp_folder, self.temp_file)
         codes = []
         bad_messages = {}
         for id_, text in buffered_messages.items():
-            if self.msgs.satellite not in text or self.msgs.green_check in text:
+            if self.msgs.satellite not in text or self.msgs.green_check in text or self.msgs.red_circle in text:
                 bad_messages[id_] = text
                 continue
             old_content = text.split(self.msgs.satellite)[-1].split('https')[0]
 
             url = self.request_url + '/' + id_
 
+            if reason == 'aborted':
+                msg = self.msgs.stream_aborted_string()
+            elif reason == 'finished':
+                msg = self.msgs.stream_finished_string()
+            else:
+                raise Exception
+
             new_message = {
                 'flags': '4',
-                'content': f'@everyone {self.msgs.stream_ended_string()}~~{old_content}~~'
+                'content': f'@everyone {msg}~~{old_content}~~'
             }
             try:
                 response = requests.patch(url, headers=self.headers, data=new_message)
@@ -76,5 +83,3 @@ class DiscordBot:
             return response
         except Exception as e:
             print(e)
-
-

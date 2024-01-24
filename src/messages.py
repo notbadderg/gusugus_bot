@@ -7,9 +7,17 @@ class CustomMessages:
         self.satellite = '📡'
         self.green_check = '✅'
         self.blue_info = 'ℹ️'
+        self.red_circle = '⭕️'
 
-    def stream_ended_string(self):
+        self.warning = ('🤖 Сообщение отправлено с помощью тестового бота.\n'
+                        'В случае возникновения проблем - наслаждайтесь.')
+
+    def stream_finished_string(self):
         str_ = f'{self.green_check} Стрим завершен.\n'
+        return str_
+
+    def stream_aborted_string(self):
+        str_ = f'{self.red_circle} Анонс отменен. \n'
         return str_
 
     def stream_only_twitch_string(self):
