@@ -18,6 +18,7 @@ def get_cfg():
         'DS_API_ROOT',
         'DS_TOKEN',
         'DS_CHANNEL_ID',
+        'DS_TEMP_FILE',
 
         'TWITCH_URL',
         'YOUTUBE_URL',

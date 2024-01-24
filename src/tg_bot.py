@@ -5,15 +5,16 @@ from src.utilites import append_message, read_messages, rewrite_messages
 
 
 class TelegramBot:
-    def __init__(self, api_root, token, allowed_users, channel_id, msgs, temp_folder, tg_temp_file):
-        self.api_root = api_root
-        self.token = token
-        self.allowed_users = allowed_users
-        self.channel_id = int(channel_id)
+    def __init__(self, cfg, msgs):
+        self.api_root = cfg['TG_API_ROOT']
+        self.token = cfg['TG_TOKEN']
+        self.allowed_users = cfg['TG_ALLOWED_USERS']
+        self.channel_id = int(cfg['TG_CHANNEL_ID'])
+
+        self.temp_file = cfg['TG_TEMP_FILE']
+        self.temp_folder = cfg['TEMP_FOLDER']
 
         self.msgs = msgs
-        self.temp_folder = temp_folder
-        self.tg_temp_file = tg_temp_file
 
         self.request_root = self.api_root + self.token
 
@@ -31,7 +32,7 @@ class TelegramBot:
             if response.status_code == 200:
                 result = response.json()['result']
                 buffered_message = {result['message_id']: result['text']}
-                append_message(self.temp_folder, self.tg_temp_file, buffered_message)
+                append_message(self.temp_folder, self.temp_file, buffered_message)
             return response
         except Exception as e:
             print(e)
@@ -43,14 +44,20 @@ class TelegramBot:
         body = {
             'disable_web_page_preview': True,
             'chat_id': self.channel_id,
-            'text': 'asddsas',
+            'parse_mode': 'html',
         }
 
-        buffered_messages = read_messages(self.temp_folder, self.tg_temp_file)
+        buffered_messages = read_messages(self.temp_folder, self.temp_file)
 
         bad_messages = {}
         for id_, text in buffered_messages.items():
+            if self.msgs.satellite not in text or self.msgs.green_check in text:
+                bad_messages[id_] = text
+                continue
+            old_text = text.split(self.msgs.satellite)[-1].split('https')[0]
+
             body.update({
+                'text': f'{self.msgs.stream_ended_string()}<del>{old_text}</del>',
                 'message_id': id_
             })
 
@@ -60,7 +67,7 @@ class TelegramBot:
                 bad_messages[id_] = text
             time.sleep(0.5)
 
-        rewrite_messages(self.temp_folder, self.tg_temp_file, bad_messages)
+        rewrite_messages(self.temp_folder, self.temp_file, bad_messages)
 
 
 
