@@ -201,8 +201,10 @@ class TelegramBot:
             raw_results = response.json()['result']
             results = sorted(raw_results, key=lambda x: x['update_id'], reverse=True)
             for result in results:
-
+                if result.get('my_chat_member'):
+                    continue
                 update_id = result['update_id']
+
                 if bot_start_time >= result['message']['date'] or update_id in processed_messages:
                     continue
 
