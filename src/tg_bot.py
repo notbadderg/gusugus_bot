@@ -96,13 +96,13 @@ class TelegramBot:
         match command:
             case 'a':
                 return 'a'
-            case '!soon_all':
+            case '/soon_all':
                 message = self.msgs.stream_starts_soon() + self.msgs.stream_everywhere_string()
                 r1 = self.send_msg(message).status_code
                 r2 = self.ds_bot.send_msg(message).status_code
                 return f'{r1}, {r2}'
 
-            case '!finish':
+            case '/finish':
                 r1 = self.finish_announce()
                 r2 = self.ds_bot.finish_announce()
                 return f'{r1}, {r2}'
@@ -110,6 +110,14 @@ class TelegramBot:
             # If an exact match is not confirmed, this last case will be used if provided
             case _:
                 return 'Unrecognized'
+
+    def commands_switch(self, command):
+        if command[0] == '/':
+            return 'uwu'
+
+        else:
+            return 'UNRECOGNIZED'
+
 
     def start(self):
         bot_start_time = time.time()
@@ -154,7 +162,8 @@ class TelegramBot:
                     continue
 
                 print()
-                result = self.bot_commands(message_text)
+                result = self.commands_switch(message_text)
+
                 log_string = (f'{message_date} - {update_id} - {sender_id} {sender_type} {sender_username}: '
                               f'RESULT {result}')
                 self.send_service_msg(log_string)
