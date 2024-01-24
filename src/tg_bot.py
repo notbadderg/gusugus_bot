@@ -90,6 +90,19 @@ class TelegramBot:
 
         rewrite_messages(self.temp_folder, self.temp_file, bad_messages)
 
+    def bot_commands(self, command):
+        match command:
+            case 'a':
+                return 'a'
+            case 'b':
+                return 'b'
+            case 'c':
+                return 'c'
+
+            # If an exact match is not confirmed, this last case will be used if provided
+            case _:
+                return 'Unrecognized'
+
     def start(self, ds_bot):
         bot_start_time = time.time()
         start_msg = f'{datetime.datetime.fromtimestamp(bot_start_time).strftime('%Y-%m-%d %H:%M:%S')} - start'
@@ -109,8 +122,8 @@ class TelegramBot:
                 time.sleep(60)
                 continue
 
-            results = response.json()['result']
-
+            raw_results = response.json()['result']
+            results = sorted(raw_results, key=lambda x: x['update_id'], reverse=True)
             for result in results:
                 update_id = result['update_id']
                 if update_id <= last_update_id or bot_start_time > result['message']['date']:
@@ -131,10 +144,13 @@ class TelegramBot:
                     continue
 
                 print()
+                result = self.bot_commands(message_text)
+                log_string = (f'{message_date} - {update_id} - {sender_id} {sender_type} {sender_username}: '
+                              f'RESULT {result}')
+                self.send_service_msg(log_string)
+                print(log_string)
 
-
-
-                print('uwu')
-                # if
+                # NEED FOR COMPLETING ONLY LAST CMD
                 break
+
 
