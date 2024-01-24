@@ -9,9 +9,8 @@ class CustomMessages:
         self.blue_info = 'ℹ️'
         self.red_circle = '⭕️'
 
-        self.warning = ('🪿 Сообщение отправлено с помощью тестового гуся.\n'
-                        'В случае возникновения проблем - наслаждайтесь.')
-
+        self.warning = ('=====\n🚧🧀🪿🚧!')
+                        
     def stream_finished_string(self):
         str_ = f'{self.green_check} Стрим завершен.\n'
         return str_
