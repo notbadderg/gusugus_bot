@@ -43,7 +43,7 @@ class DiscordBot:
     def finish_announce(self):
 
         buffered_messages = read_messages(self.temp_folder, self.temp_file)
-
+        codes = []
         bad_messages = {}
         for id_, text in buffered_messages.items():
             if self.msgs.satellite not in text or self.msgs.green_check in text:
@@ -59,13 +59,15 @@ class DiscordBot:
             }
             try:
                 response = requests.patch(url, headers=self.headers, data=new_message)
+                codes.append(response.status_code)
                 if response.status_code != 200:
                     bad_messages[id_] = text
-                time.sleep(0.5)
+                time.sleep(2)
             except Exception as e:
                 print(e)
 
         rewrite_messages(self.temp_folder, self.temp_file, bad_messages)
+        return codes
 
     def get_msgs(self):
 

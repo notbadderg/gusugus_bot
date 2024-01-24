@@ -18,10 +18,11 @@ def main():
     message = msgs.stream_starts_soon() + msgs.stream_everywhere_string()
 
     # Test
-    tg_bot = TelegramBot(cfg, msgs)
-    ds_bot = DiscordBot(cfg, msgs)
 
-    tg_bot.start(ds_bot)
+    ds_bot = DiscordBot(cfg, msgs)
+    tg_bot = TelegramBot(cfg, msgs, ds_bot)
+
+    tg_bot.start()
 
     # response = tg_bot.send_msg(message)
     # print(json.dumps(response.json(), indent=4))

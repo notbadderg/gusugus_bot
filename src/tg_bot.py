@@ -8,7 +8,7 @@ from src.utilites import append_message, read_messages, rewrite_messages
 
 
 class TelegramBot:
-    def __init__(self, cfg, msgs):
+    def __init__(self, cfg, msgs, ds_bot):
         self.api_root = cfg['TG_API_ROOT']
         self.token = cfg['TG_TOKEN']
         self.allowed_users = cfg['TG_ALLOWED_USERS'].split(',')
@@ -18,6 +18,7 @@ class TelegramBot:
         self.temp_folder = cfg['TEMP_FOLDER']
 
         self.msgs = msgs
+        self.ds_bot = ds_bot
 
         self.request_root = self.api_root + self.token
 
@@ -69,7 +70,7 @@ class TelegramBot:
         }
 
         buffered_messages = read_messages(self.temp_folder, self.temp_file)
-
+        codes = []
         bad_messages = {}
         for id_, text in buffered_messages.items():
             if self.msgs.satellite not in text or self.msgs.green_check in text:
@@ -83,27 +84,34 @@ class TelegramBot:
             })
 
             response = requests.post(url, json=body)
-            print(response)
+            codes.append(response.status_code)
             if response.status_code != 200:
                 bad_messages[id_] = text
-            time.sleep(0.5)
+            time.sleep(2)
 
         rewrite_messages(self.temp_folder, self.temp_file, bad_messages)
+        return codes
 
     def bot_commands(self, command):
         match command:
             case 'a':
                 return 'a'
-            case 'b':
-                return 'b'
-            case 'c':
-                return 'c'
+            case '!soon_all':
+                message = self.msgs.stream_starts_soon() + self.msgs.stream_everywhere_string()
+                r1 = self.send_msg(message).status_code
+                r2 = self.ds_bot.send_msg(message).status_code
+                return f'{r1}, {r2}'
+
+            case '!finish':
+                r1 = self.finish_announce()
+                r2 = self.ds_bot.finish_announce()
+                return f'{r1}, {r2}'
 
             # If an exact match is not confirmed, this last case will be used if provided
             case _:
                 return 'Unrecognized'
 
-    def start(self, ds_bot):
+    def start(self):
         bot_start_time = time.time()
         start_msg = f'{datetime.datetime.fromtimestamp(bot_start_time).strftime('%Y-%m-%d %H:%M:%S')} - start'
         print(start_msg)
@@ -111,7 +119,7 @@ class TelegramBot:
 
         time_threshold = bot_start_time
         while True:
-            time.sleep(20)
+            time.sleep(5)
 
             method = '/getUpdates'
             url = self.request_root + method
