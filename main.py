@@ -19,18 +19,20 @@ def main():
 
     # Test
     tg_bot = TelegramBot(cfg, msgs)
-    # tg_bot.start()
+    ds_bot = DiscordBot(cfg, msgs)
 
-    response = tg_bot.send_msg(message)
+    tg_bot.start(ds_bot)
+
+    # response = tg_bot.send_msg(message)
     # print(json.dumps(response.json(), indent=4))
     # #
-    print(tg_bot.finish_announce())
+    # print(tg_bot.finish_announce())
 
 
 
     #
-    ds_bot = DiscordBot(cfg, msgs)
-    response = ds_bot.send_msg(message)
+    #
+    # response = ds_bot.send_msg(message)
     # print(json.dumps(response.json(), indent=4))
 
     # response = ds_bot.get_msgs()

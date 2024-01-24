@@ -1,5 +1,8 @@
+import os
+
 import requests
 import time
+import datetime
 
 from src.utilites import append_message, read_messages, rewrite_messages
 
@@ -8,7 +11,7 @@ class TelegramBot:
     def __init__(self, cfg, msgs):
         self.api_root = cfg['TG_API_ROOT']
         self.token = cfg['TG_TOKEN']
-        self.allowed_users = cfg['TG_ALLOWED_USERS']
+        self.allowed_users = cfg['TG_ALLOWED_USERS'].split(',')
         self.channel_id = int(cfg['TG_CHANNEL_ID'])
 
         self.temp_file = cfg['TG_TEMP_FILE']
@@ -17,6 +20,24 @@ class TelegramBot:
         self.msgs = msgs
 
         self.request_root = self.api_root + self.token
+
+    def send_service_msg(self, message):
+        method = '/sendMessage'
+        url = self.request_root + method
+
+        for user in self.allowed_users:
+
+            body = {
+                'disable_web_page_preview': True,
+                'chat_id': user,
+                'text': message,
+            }
+
+            try:
+                response = requests.post(url, json=body)
+                return response
+            except Exception as e:
+                print(e)
 
     def send_msg(self, message):
         method = '/sendMessage'
@@ -69,47 +90,51 @@ class TelegramBot:
 
         rewrite_messages(self.temp_folder, self.temp_file, bad_messages)
 
+    def start(self, ds_bot):
+        bot_start_time = time.time()
+        start_msg = f'{datetime.datetime.fromtimestamp(bot_start_time).strftime('%Y-%m-%d %H:%M:%S')} - start'
+        print(start_msg)
+        self.send_service_msg(start_msg)
 
-
-        #
-        #
-        #
-        # method = f'/getUpdates?chat_id={self.channel_id}'
-        # url = self.request_root + method
-        # headers = {
-        #     'chat_id': self.channel_id,
-        # }
-        #
-        # response = requests.get(url)
-        # print(response.json())
-        # u = response.json()
-        # print(u)
-        # for message in response.json():
-        #     if self.msgs.satellite in message['content']:
-        #         old_content = message['content'].split(self.msgs.satellite)[-1].split('https')[0]
-        #
-        #         url = self.request_url + '/' + message['id']
-        #
-        #         new_message = {
-        #             'flags': '4',
-        #             'content': f'@everyone {self.msgs.stream_ended_string()}~~{old_content}~~'
-        #         }
-        #         try:
-        #             response = requests.patch(url, headers=self.headers, data=new_message)
-        #             return response
-        #         except Exception as e:
-        #             print(e)
-
-
-    def start(self):
+        last_update_id = 0
         while True:
-            pass
-            method = '/getUpdates?offset=-1'
-            url = self.request_root + method
-            headers = {
-                'chat_id': self.channel_id,
-            }
+            time.sleep(5)
 
+            method = '/getUpdates'
+            url = self.request_root + method
             response = requests.get(url)
-            print(response.json())
+            print(f'{datetime.datetime.now()} - {response.status_code}')
+            if response.status_code != 200:
+                print('retrying in 60 secs...')
+                time.sleep(60)
+                continue
+
+            results = response.json()['result']
+
+            for result in results:
+                update_id = result['update_id']
+                if update_id <= last_update_id or bot_start_time > result['message']['date']:
+                    continue
+
+                last_update_id = update_id
+                sender_id = result['message']['from']['id']
+                sender_type = result['message']['from']['is_bot']
+                sender_username = result['message']['from']['username']
+                message_date = datetime.datetime.fromtimestamp(result['message']['date']).strftime('%Y-%m-%d %H:%M:%S')
+                message_text = result['message']['text']
+                log_string = f'{message_date} - {update_id} - {sender_id} {sender_type} {sender_username}: {message_text}'
+                print(log_string, end='')
+                if not (sender_username in self.allowed_users or str(sender_id) in self.allowed_users):
+                    danger = ' ! UNAUTHORIZED ATTEMPT ! '
+                    print(danger)
+                    self.send_service_msg(log_string + danger)
+                    continue
+
+                print()
+
+
+
+                print('uwu')
+                # if
+                break
 
