@@ -110,6 +110,9 @@ class TelegramBot:
                     '/maall {msg}\n\n'
                     '/matwi {msg}\n\n'
                     '/maoth {msg}\n\n'
+                    '\n\n'
+                    'add ! to supress a confirmation:\n'
+                    '!/start'
                     )
             return cmds
 
@@ -229,11 +232,15 @@ class TelegramBot:
                 else:
                     prev_cmd = message_text
 
-                if message_text == '/start' or confirms_count > 0:
-                    result_cmd = self.commands_switch(message_text)
+                if message_text[0] == '!':
+                    result_cmd = self.commands_switch(message_text[1:])
                     confirms_count = 0
                     prev_cmd = 'baw'
 
+                elif message_text == '/start' or confirms_count > 0:
+                    result_cmd = self.commands_switch(message_text)
+                    confirms_count = 0
+                    prev_cmd = 'baw'
                 else:
                     result_cmd = 'Enter again for confirm'
 
