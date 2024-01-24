@@ -1,5 +1,3 @@
-import os
-
 import requests
 import time
 import datetime
@@ -213,7 +211,8 @@ class TelegramBot:
                 sender_username = result['message']['from']['username']
                 message_date = datetime.datetime.fromtimestamp(result['message']['date']).strftime('%Y-%m-%d %H:%M:%S')
                 message_text = result['message']['text']
-                log_string = f'{message_date} - {update_id} - {sender_id} {sender_type} {sender_username}: {message_text}'
+                log_string = (f'{message_date} - {update_id} - '
+                              f'{sender_id} {sender_type} {sender_username}: {message_text}')
                 print(log_string, end='')
                 if not (sender_username in self.allowed_users or str(sender_id) in self.allowed_users):
                     danger = ' ! UNAUTHORIZED ATTEMPT ! '
