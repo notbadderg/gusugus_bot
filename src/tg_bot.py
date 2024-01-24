@@ -109,9 +109,8 @@ class TelegramBot:
         print(start_msg)
         self.send_service_msg(start_msg)
 
-        last_update_id = 0
         while True:
-            time.sleep(5)
+            time.sleep(20)
 
             method = '/getUpdates'
             url = self.request_root + method
@@ -125,11 +124,11 @@ class TelegramBot:
             raw_results = response.json()['result']
             results = sorted(raw_results, key=lambda x: x['update_id'], reverse=True)
             for result in results:
-                update_id = result['update_id']
-                if update_id <= last_update_id or bot_start_time > result['message']['date']:
+
+                if bot_start_time > result['message']['date']:
                     continue
 
-                last_update_id = update_id
+                update_id = result['update_id']
                 sender_id = result['message']['from']['id']
                 sender_type = result['message']['from']['is_bot']
                 sender_username = result['message']['from']['username']
