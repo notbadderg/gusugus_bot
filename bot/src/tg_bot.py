@@ -2,7 +2,7 @@ import requests
 import time
 import datetime
 
-from bot.src.utilites import append_message, read_messages, rewrite_messages
+from src.utilites import append_message, read_messages, rewrite_messages
 
 
 class TelegramBot:
