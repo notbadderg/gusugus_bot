@@ -216,6 +216,9 @@ class TelegramBot:
                 sender_type = result['message']['from']['is_bot']
                 sender_username = result['message']['from']['username']
                 message_date = datetime.datetime.fromtimestamp(result['message']['date']).strftime('%Y-%m-%d %H:%M:%S')
+                if not result['message'].get('text'):
+                    continue
+
                 message_text = result['message']['text']
                 log_string = (f'{message_date} - {update_id} - '
                               f'{sender_id} {sender_type} {sender_username}: {message_text}')
