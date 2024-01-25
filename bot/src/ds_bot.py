@@ -1,7 +1,7 @@
 import requests
 import time
 
-from src.utilites import append_message, read_messages, rewrite_messages
+from bot.src.utilites import append_message, read_messages, rewrite_messages
 
 
 class DiscordBot:

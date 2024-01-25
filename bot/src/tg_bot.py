@@ -2,7 +2,7 @@ import requests
 import time
 import datetime
 
-from src.utilites import append_message, read_messages, rewrite_messages
+from bot.src.utilites import append_message, read_messages, rewrite_messages
 
 
 class TelegramBot:
@@ -204,8 +204,9 @@ class TelegramBot:
             raw_results = response.json()['result']
             results = sorted(raw_results, key=lambda x: x['update_id'], reverse=True)
             for result in results:
-                if result.get('my_chat_member'):
+                if result.get('my_chat_member') or not result.get('message'):
                     continue
+
                 update_id = result['update_id']
 
                 if bot_start_time >= result['message']['date'] or update_id in processed_messages:
