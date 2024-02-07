@@ -1,0 +1,11 @@
+version: '3.11'
+
+networks:
+  dev_network:
+
+services:
+
+  backend:
+    image: gusugus_bot:latest
+    env_file:
+      - .env
