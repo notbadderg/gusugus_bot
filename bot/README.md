@@ -1,1 +1,0 @@
-# gusugus_bot
