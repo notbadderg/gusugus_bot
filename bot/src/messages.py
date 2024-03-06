@@ -9,8 +9,9 @@ class CustomMessages:
         self.blue_info = 'ℹ️'
         self.red_circle = '⭕️'
 
-        self.warning = ('=====\n🚧🧀🪿🚧')
-                        
+        # self.warning = '=====\n🚧🧀🪿🚧'
+        self.warning = ''
+
     def stream_finished_string(self):
         str_ = f'{self.green_check} Стрим завершен.\n'
         return str_
@@ -20,9 +21,12 @@ class CustomMessages:
         return str_
 
     def stream_only_twitch_string(self):
-        str_ = (f'{self.warning_sign} Трансляция будет только на Twitch!\n'
+        str_ = (
+                # f'{self.warning_sign} Трансляция будет только на Twitch!\n'
                 f'\n'
-                f'{self.twitch_url}\n')
+                f'{self.twitch_url}'
+                # f'\n'
+        )
         return str_
 
     def stream_everywhere_string(self):
