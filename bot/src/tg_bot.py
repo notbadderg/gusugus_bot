@@ -193,7 +193,11 @@ class TelegramBot:
                 "timeout": 0,
             }
             method = '/getUpdates'
-            url = self.request_root + method
+            try:
+                url = self.request_root + method
+            except requests.exceptions.ConnectionError:
+                time.sleep(600)
+                continue
             response = requests.post(url, json=body)
             print(f'{datetime.datetime.now()} - {response.status_code}')
             if response.status_code != 200:
