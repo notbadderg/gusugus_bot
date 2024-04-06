@@ -196,7 +196,10 @@ class TelegramBot:
             try:
                 url = self.request_root + method
             except requests.exceptions.ConnectionError:
-                time.sleep(600)
+                secs = 600
+                print(f'{datetime.datetime.now()} - E - Exception "ConnectionError", wait {secs}')
+                time.sleep(secs)
+                print(f'{datetime.datetime.now()} - waiting over, staring cycle again')
                 continue
             response = requests.post(url, json=body)
             print(f'{datetime.datetime.now()} - {response.status_code}')
