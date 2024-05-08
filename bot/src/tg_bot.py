@@ -195,13 +195,14 @@ class TelegramBot:
             method = '/getUpdates'
             try:
                 url = self.request_root + method
+                response = requests.post(url, json=body)
             except requests.exceptions.ConnectionError:
                 secs = 600
                 print(f'{datetime.datetime.now()} - E - Exception "ConnectionError", wait {secs}')
                 time.sleep(secs)
                 print(f'{datetime.datetime.now()} - waiting over, staring cycle again')
                 continue
-            response = requests.post(url, json=body)
+
             print(f'{datetime.datetime.now()} - {response.status_code}')
             if response.status_code != 200:
                 print('retrying in 60 secs...')
