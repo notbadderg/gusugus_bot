@@ -6,7 +6,6 @@ networks:
 services:
 
   backend:
-    build: .
-    command: python ./main.py
+    image: gusugus_bot:latest
     env_file:
       - .env
