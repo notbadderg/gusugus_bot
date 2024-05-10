@@ -6,6 +6,7 @@ from src.messages import CustomMessages
 
 
 def main():
+    print('v0.9')
     cfg = get_cfg()
     msgs = CustomMessages(cfg['TWITCH_URL'], cfg['YOUTUBE_URL'])
 
